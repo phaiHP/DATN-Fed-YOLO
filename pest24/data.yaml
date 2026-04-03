@@ -1,0 +1,39 @@
+# path: C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/datasets/pest24
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 24
+names: ['Bollworm', 'Meadow borer', 'Gryllotalpa orientalis', 'Little Gecko', 'Agriotes fuscicollis Miwa', 'Nematode trench', 'Athetis lepigone', 'Scotogramma trifolii Rottemberg', 'Armyworm', 'Spodoptera cabbage', 'Anomala corpulenta', 'Spodoptera exigua', 'Plutella xylostella', 'holotrichia parallela', 'Rice planthopper', 'Yellow tiger', 'Land tiger', 'eight-character tiger', 'holotrichia oblita', 'Stem borer', 'Striped rice bore', 'Rice Leaf Roller', 'Spodoptera litura', 'Melahotus']
+  # 0: "Bollworm"
+  # 1: "Meadow borer"
+  # 2: "Gryllotalpa orientalis"
+  # 3: "Little Gecko"
+  # 4: "Agriotes fuscicollis Miwa"
+  # 5: "Nematode trench"
+  # 6: "Athetis lepigone"
+  # 7: "Scotogramma trifolii Rottemberg"
+  # 8: "Armyworm"
+  # 9: "Spodoptera cabbage"
+  # 10: "Anomala corpulenta"
+  # 11: "Spodoptera exigua"
+  # 12: "Plutella xylostella"
+  # 13: "holotrichia parallela"
+  # 14: "Rice planthopper"
+  # 15: "Yellow tiger"
+  # 16: "Land tiger"
+  # 17: "eight-character tiger"
+  # 18: "holotrichia oblita"
+  # 19: "Stem borer"
+  # 20: "Striped rice bore"
+  # 21: "Rice Leaf Roller"
+  # 22: "Spodoptera litura"
+  # 23: "Melahotus"
+
+
+# roboflow:
+#   workspace: brad-dwyer
+#   project: thermal-cheetah
+#   version: 1
+#   license: CC BY 4.0
+#   url: https://universe.roboflow.com/brad-dwyer/thermal-cheetah/dataset/1
