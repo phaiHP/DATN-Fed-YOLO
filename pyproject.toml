@@ -10,7 +10,7 @@ license = "Apache-2.0"
 dependencies = [
     "flwr[simulation]>=1.26.0",
     "flwr-datasets[vision]>=0.5.0",
-    "torch==2.5.1",
+    "torch==2.9.0",
     "torchvision==0.23.0",
     "ultralytics>=8.3.0"
 ]
@@ -26,7 +26,7 @@ serverapp = "pytorchexample.server_app:app"
 clientapp = "pytorchexample.yolo_client:app" 
 
 [tool.flwr.app.config]
-num-server-rounds = 3
+num-server-rounds = 2
 fraction-evaluate = 0.5
 local-epochs = 1
 learning-rate = 0.1
@@ -48,27 +48,43 @@ num-clients = 2
 # Docs: https://flower.ai/docs/framework/ref-flower-configuration.html
 #######################################################################
 
-
-#######################################################################
-# CONFIGURATION MIGRATION NOTICE:
-#
-# What was previously called "federation config" for SuperLink
-# connections in pyproject.toml has been renamed and moved.
-#
-# These settings are now **SuperLink connection configuration**
-# and are defined in the Flower configuration file.
-#
-# The entries below are commented out intentionally and are kept
-# only as a migration reference.
-#
-# Docs: https://flower.ai/docs/framework/ref-flower-configuration.html
-#######################################################################
-
 # [tool.flwr.federations]
-# default = "local-simulation" 
+#  default = "local-simulation" 
 
-# [tool.flwr.federations.local-simulation]
-# options.num-supernodes = 2
-# # options.backend.client-resources.num-cpus = 1
-# # options.backend.client-resources.num-gpus = 0.5
+#  [tool.flwr.federations.local-simulation]
+#  options.num-supernodes = 2
+# #######################################################################
+# # CONFIGURATION MIGRATION NOTICE:
+# #
+# # What was previously called "federation config" for SuperLink
+# # connections in pyproject.toml has been renamed and moved.
+# #
+# # These settings are now **SuperLink connection configuration**
+# # and are defined in the Flower configuration file.
+# #
+# # The entries below are commented out intentionally and are kept
+# # only as a migration reference.
+# #
+# # Docs: https://flower.ai/docs/framework/ref-flower-configuration.html
+# #######################################################################
+
+
+# #######################################################################
+# # CONFIGURATION MIGRATION NOTICE:
+# #
+# # What was previously called "federation config" for SuperLink
+# # connections in pyproject.toml has been renamed and moved.
+# #
+# # These settings are now **SuperLink connection configuration**
+# # and are defined in the Flower configuration file.
+# #
+# # The entries below are commented out intentionally and are kept
+# # only as a migration reference.
+# #
+# # Docs: https://flower.ai/docs/framework/ref-flower-configuration.html
+# #######################################################################
+
+
+# # # options.backend.client-resources.num-cpus = 1
+# # # options.backend.client-resources.num-gpus = 0.5
 

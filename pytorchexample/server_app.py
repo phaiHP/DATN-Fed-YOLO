@@ -5,13 +5,60 @@ from ultralytics import YOLO
 from flwr.app import ArrayRecord, ConfigRecord, Context, MetricRecord
 from flwr.serverapp import Grid, ServerApp
 from flwr.serverapp.strategy import FedAvg
+# import logging
+# import sys
+
+# # Cấu hình logging
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(levelname)s - %(message)s',
+#     handlers=[
+#         logging.FileHandler("flwr_yolo_log.txt", encoding='utf-8'), # Ghi vào file
+#         logging.StreamHandler(sys.stdout) # Vẫn hiển thị ra màn hình Terminal
+#     ]
+# )
+import sys
+import os
+from datetime import datetime
+
+# class Logger(object):
+#     def __init__(self):
+#         self.terminal = sys.stdout
+#         # Tạo thư mục 'logs' nếu chưa có
+#         if not os.path.exists("logs"):
+#             os.makedirs("logs")
+            
+#         # Tạo tên file dựa trên thời gian hiện tại
+#         timestamp = datetime.now().strftime("%Y%m%d_%HH%MM%SS")
+#         log_filename = f"logs/training_{timestamp}.log"
+        
+#         self.log = open(log_filename, "a", encoding='utf-8')
+#         print(f"--- Đang ghi log vào file: {log_filename} ---")
+
+#     def write(self, message):
+#         self.terminal.write(message)
+#         self.log.write(message)
+
+#     def flush(self):
+#         self.terminal.flush()
+#         self.log.flush()
+
+# # Kích hoạt Logger cho cả đầu ra thông thường và lỗi
+# sys.stdout = Logger()
+# sys.stderr = sys.stdout 
+
+# # Test thử
+# print("Bắt đầu chạy Flower Simulation...")
+
+# Ví dụ sử dụng trong hàm của bạn
+# logging.info(f"Results Dict Keys: {results.results_dict.keys()}")
 # from flwr.server.strategy import FedAvg
 # ── init model with 24 class ──
 MODEL_PATH = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_init.pt"
 # net = YOLO(MODEL_PATH)
 # MODEL_PATH = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24_init.pt"
 # CENTRAL_YAML = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24/data.yaml"
-CENTRAL_YAML = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/data.yaml"
+CENTRAL_YAML = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_{round}/data.yaml"
 
 def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
     """Evaluate aggregated YOLO model on centralized val data."""
@@ -20,12 +67,12 @@ def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
     net = YOLO(MODEL_PATH)
     state_dict = arrays.to_torch_state_dict()
     net.model.load_state_dict(state_dict, strict=True)  
-
+    central_yaml = CENTRAL_YAML.format(round=server_round)
     metrics = net.val(
-        data=CENTRAL_YAML,
-        device="0" if torch.cuda.is_available() else "cpu",
+        data=central_yaml,
+        device= "cpu",
         verbose=False,
-        plots=False,
+        plots=True,
     )
 
     map50_95 = float(metrics.box.map)
@@ -37,16 +84,23 @@ def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
         "mAP50":    map50,
     })
 
+def get_on_fit_config_fn():
+    """Hàm này trả về một hàm con được gọi mỗi round."""
+    def fit_config(server_round: int):
+        # Trả về ConfigRecord chứa số round hiện tại
+        return ConfigRecord({
+            "current_round": server_round, 
+            "learning_rate": 0.01  # Bạn có thể lấy lr từ context.run_config nếu muốn
+        })
+    return fit_config
 
 app = ServerApp()
-
-
 @app.main()
 def main(grid: Grid, context: Context) -> None:
     """Main entry point for the ServerApp."""
 
     fraction_evaluate: float = context.run_config["fraction-evaluate"]
-    num_rounds: int          = context.run_config["num-server-rounds"]
+    num_rounds: int       = context.run_config["num-server-rounds"]
     lr: float                = context.run_config["learning-rate"]
 
     print("Initializing global YOLOv8 model (nc=24)...")
@@ -85,6 +139,7 @@ def main(grid: Grid, context: Context) -> None:
         "round": 0,   # 👈 sẽ được update mỗi round
     }),
     num_rounds=num_rounds,
+    # on_fit_config_fn=get_on_fit_config_fn(),
     evaluate_fn=global_evaluate,
 )
 
