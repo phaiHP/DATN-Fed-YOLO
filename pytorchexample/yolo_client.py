@@ -43,17 +43,21 @@ def train(msg: Message, context: Context):
         numround=current_round,
         device=device,
     )
+    # print(f"[Client {partition_id}] Finished training with loss: {train_loss:.4f}")
 
     train_img_dir = (
         f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch"
-        f"/pest24_{current_round}/partitions/client_{partition_id}/train/images"
+        f"/pest24/partitions/client_{partition_id}/train/images"
     )
     num_examples = count_images(train_img_dir)
 
     model_record  = ArrayRecord(net.model.state_dict())  
     metric_record = MetricRecord({
-        "train_loss":   float(train_loss),
+        "train_loss":   float(train_loss[0]),
+          "val_loss": float(train_loss[1]),  # 👈 tổng loss
         "num-examples": num_examples,
+        "map5095":   float(train_loss[2]),  # 👈 thêm train_map
+         "map50": float(train_loss[3]),  # 👈 thêm train_map50
     })
     content = RecordDict({"arrays": model_record, "metrics": metric_record})
     return Message(content=content, reply_to=msg)
@@ -73,7 +77,7 @@ def evaluate(msg: Message, context: Context):
     state_dict = msg.content["arrays"].to_torch_state_dict()
     net.model.load_state_dict(state_dict, strict=False)
 
-    eval_loss, eval_acc = test_fn(
+    eval_map, eval_map50 = test_fn(
         net,
         partition_id=partition_id,
         numround=current_round,
@@ -82,13 +86,14 @@ def evaluate(msg: Message, context: Context):
 
     val_img_dir = (
         f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch"
-        f"/pest24_{current_round}/partitions/client_{partition_id}/valid/images"
+        f"/pest24/partitions/client_{partition_id}/valid/images"
     )
     num_examples = count_images(val_img_dir)
 
     metric_record = MetricRecord({
-        "eval_loss":    float(eval_loss),
-        "eval_acc":     float(eval_acc),
+        # "eval_loss":    float(eval_loss),
+        "eval_map":     float(eval_map),
+        "eval_map50":   float(eval_map50),
         "num-examples": num_examples,
     })
     content = RecordDict({"metrics": metric_record})

@@ -58,7 +58,7 @@ MODEL_PATH = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch
 # net = YOLO(MODEL_PATH)
 # MODEL_PATH = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24_init.pt"
 # CENTRAL_YAML = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24/data.yaml"
-CENTRAL_YAML = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_{round}/data.yaml"
+CENTRAL_YAML = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/data.yaml"
 
 def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
     """Evaluate aggregated YOLO model on centralized val data."""
@@ -67,7 +67,8 @@ def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
     net = YOLO(MODEL_PATH)
     state_dict = arrays.to_torch_state_dict()
     net.model.load_state_dict(state_dict, strict=True)  
-    central_yaml = CENTRAL_YAML.format(round=server_round)
+    central_yaml = CENTRAL_YAML
+    #.format(round=server_round)
     metrics = net.val(
         data=central_yaml,
         device= "cpu",
