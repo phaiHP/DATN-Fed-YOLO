@@ -26,13 +26,13 @@ def train(msg: Message, context: Context):
     """Train the YOLOv8 model on local pest24 partition."""
 
     partition_id = context.node_config["partition-id"]
-    device       = "0" if torch.cuda.is_available() else "cpu"
+    device       =  "0" if torch.cuda.is_available() else "cpu"
 
     net = YOLO(MODEL_PATH)
     state_dict = msg.content["arrays"].to_torch_state_dict()
     net.model.load_state_dict(state_dict, strict=False)
 
-    train_loss = train_fn(
+    train_loss, val_loss, map5095, map50 = train_fn(
         net,
         partition_id=partition_id,
         epochs=context.run_config["local-epochs"],
@@ -49,6 +49,10 @@ def train(msg: Message, context: Context):
     model_record  = ArrayRecord(net.model.state_dict())  
     metric_record = MetricRecord({
         "train_loss":   float(train_loss),
+        "val_loss":     float(val_loss),
+        "map50-95":     float(map5095), 
+        "map50":        float(map50),
+
         "num-examples": num_examples,
     })
     content = RecordDict({"arrays": model_record, "metrics": metric_record})
@@ -60,13 +64,13 @@ def evaluate(msg: Message, context: Context):
     """Evaluate the YOLOv8 model on local pest24 val split."""
 
     partition_id = context.node_config["partition-id"]
-    device       = "0" if torch.cuda.is_available() else "cpu"
+    device       =  "0" if torch.cuda.is_available() else "cpu"
 
     net = YOLO(MODEL_PATH)
     state_dict = msg.content["arrays"].to_torch_state_dict()
     net.model.load_state_dict(state_dict, strict=False)
 
-    eval_loss, eval_acc = test_fn(
+    eval_map, eval_map50 = test_fn(
         net,
         partition_id=partition_id,
         device=device,
@@ -79,8 +83,8 @@ def evaluate(msg: Message, context: Context):
     num_examples = count_images(val_img_dir)
 
     metric_record = MetricRecord({
-        "eval_loss":    float(eval_loss),
-        "eval_acc":     float(eval_acc),
+        "eval_map":    float(eval_map),
+        "eval_map50":     float(eval_map50),
         "num-examples": num_examples,
     })
     content = RecordDict({"metrics": metric_record})

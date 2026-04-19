@@ -7,9 +7,9 @@ import torch
 # results = net.train(
 #     data="C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/data.yaml",
 #     epochs=1,
-#     imgsz=640,
-#     batch=4,
-#     device="0" if torch.cuda.is_available() else "cpu",
+#     imgsz=800,
+#     batch=16,
+#     device= "0" if torch.cuda.is_available() else "cpu",
 #     amp=False,
 #     project="runs/init",
 #     name="pest24_init",
@@ -19,8 +19,8 @@ import torch
 #     results = net.train(
 #         data="pest24/data.yaml",
 #         epochs=1,
-#         imgsz=640,
-#         batch=4,
+#         imgsz=800,
+#         batch=16,
 #         device="0" if torch.cuda.is_available() else "cpu",
 #         amp=False,
 #         project="runs/init",
@@ -34,7 +34,7 @@ import torch
 import shutil
 
 shutil.copy(
-    "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/runs/init/pest24_init18/weights/best.pt",
+    "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/runs/init/pest24_init28/weights/best.pt",
     "pest24_init.pt",
 )
 print("✅ Saved pest24_init.pt")
