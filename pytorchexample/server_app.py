@@ -1,12 +1,95 @@
 """pest24example: A Flower / YOLOv8 Server App."""
 
+import datetime
 import torch
 from ultralytics import YOLO
 from flwr.app import ArrayRecord, ConfigRecord, Context, MetricRecord
 from flwr.serverapp import Grid, ServerApp
 from flwr.serverapp.strategy import FedAvg
+import sys
+import os
+import logging  
 # from flwr.server.strategy import FedAvg
 # ── init model with 24 class ──
+# class Logger(object):
+#     def __init__(self):
+#         self.terminal = sys.stdout
+#         # Tạo thư mục 'logs' nếu chưa có
+#         if not os.path.exists("logs"):
+#             os.makedirs("logs")
+            
+#         # Tạo tên file dựa trên thời gian hiện tại
+#         timestamp = datetime.now().strftime("%Y%m%d_%HH%MM%SS")
+#         log_filename = f"logs/training_{timestamp}.log"
+        
+#         self.log = open(log_filename, "a", encoding='utf-8')
+#         print(f"--- Đang ghi log vào file: {log_filename} ---")
+
+#     def write(self, message):
+#         self.terminal.write(message)
+#         self.log.write(message)
+
+#     def flush(self):
+#         self.terminal.flush()
+#         self.log.flush()
+
+# # Kích hoạt Logger cho cả đầu ra thông thường và lỗi
+# sys.stdout = Logger()
+# sys.stderr = sys.stdout 
+
+# # Test thử
+# print("Bắt đầu chạy Flower Simulation...")
+
+# #Ví dụ sử dụng trong hàm của bạn
+# logging.info(f"Results Dict Keys: {results.results_dict.keys()}")
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        if not os.path.exists("logs"):
+            os.makedirs("logs")
+            
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"logs/training_{timestamp}.log"
+        
+        self.log = open(log_filename, "a", encoding='utf-8')
+        print(f"--- Đang ghi log vào file: {log_filename} ---")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+    def fileno(self):
+        """Trả về file descriptor của terminal gốc."""
+        return self.terminal.fileno()
+
+    def isatty(self):
+        """Kiểm tra xem có phải là terminal thực hay không."""
+        return self.terminal.isatty()
+
+    @property
+    def encoding(self):
+        """Trả về encoding của terminal gốc."""
+        return self.terminal.encoding
+
+# Kích hoạt Logger
+sys.stdout = Logger()
+sys.stderr = sys.stdout
+log_file_path = sys.stdout.log.name 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s : %(message)s',
+    handlers=[
+        logging.FileHandler(log_file_path, encoding='utf-8'), # Ghi vào cùng file log đó
+        logging.StreamHandler(sys.stdout.terminal)           # Vẫn đẩy ra màn hình console gốc
+    ]
+)
+
+# Chỉ định rõ cho Flower và Ray sử dụng cấu hình này
+logging.getLogger("flwr").setLevel(logging.INFO)
 MODEL_PATH = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_init.pt"
 # net = YOLO(MODEL_PATH)
 # MODEL_PATH = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24_init.pt"
@@ -23,7 +106,8 @@ def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
 
     metrics = net.val(
         data=CENTRAL_YAML,
-        device="0" if torch.cuda.is_available() else "cpu",
+        # device="0" if torch.cuda.is_available() else "cpu",
+        device       = "cpu",
         verbose=False,
         plots=False,
     )

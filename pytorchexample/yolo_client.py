@@ -26,7 +26,8 @@ def train(msg: Message, context: Context):
     """Train the YOLOv8 model on local pest24 partition."""
 
     partition_id = context.node_config["partition-id"]
-    device       =  "0" if torch.cuda.is_available() else "cpu"
+    # device       =  "0" if torch.cuda.is_available() else "cpu"
+    device       = "cpu"
 
     net = YOLO(MODEL_PATH)
     state_dict = msg.content["arrays"].to_torch_state_dict()
@@ -64,7 +65,8 @@ def evaluate(msg: Message, context: Context):
     """Evaluate the YOLOv8 model on local pest24 val split."""
 
     partition_id = context.node_config["partition-id"]
-    device       =  "0" if torch.cuda.is_available() else "cpu"
+    # device       =  "0" if torch.cuda.is_available() else "cpu"
+    device       = "cpu"
 
     net = YOLO(MODEL_PATH)
     state_dict = msg.content["arrays"].to_torch_state_dict()
