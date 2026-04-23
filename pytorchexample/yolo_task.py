@@ -7,7 +7,7 @@ from ultralytics import YOLO
 def train(net: YOLO, partition_id: int, epochs: int, lr: float, numround: int, device):
     """Train YOLOv8 on the client's partition using local data.yaml."""
 
-    yaml_path = f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/partitions/client_{partition_id}/data.yaml"
+    yaml_path = f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_{numround}/partitions/client_{partition_id}/data.yaml"
 
     results = net.train(
         data=yaml_path,
@@ -63,7 +63,7 @@ def train(net: YOLO, partition_id: int, epochs: int, lr: float, numround: int, d
 def test(net: YOLO, partition_id: int,numround: int, device):
     """Evaluate YOLOv8 on the client's local val split."""
 
-    yaml_path = f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/partitions/client_{partition_id}/data.yaml"
+    yaml_path = f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_{numround}/partitions/client_{partition_id}/data.yaml"
 
     metrics = net.val(
         data=yaml_path,

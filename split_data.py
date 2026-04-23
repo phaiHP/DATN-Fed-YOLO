@@ -4,55 +4,124 @@ import math
 from pathlib import Path
 
 
+# def split_pest24_standard(input_root, yaml_file, output_root, num_rounds, num_clients):
+#     # 1. Thiết lập đường dẫn gốc
+#     input_path = Path(input_root)
+#     yaml_path = Path(yaml_file)
+#     out_path = Path(output_root)
+    
+#     # Các loại dữ liệu cần xử lý
+#     data_types = ['train', 'valid', 'test']
+
+#     for d_type in data_types:
+#         img_dir = input_path / d_type / "images"
+#         lbl_dir = input_path / d_type / "labels"
+        
+#         if not img_dir.exists():
+#             print(f"Bỏ qua {d_type} vì không tìm thấy thư mục images.")
+#             continue
+
+#         # Lấy danh sách ảnh của loại này (train/valid/hoặc test)
+#         all_images = sorted(list(img_dir.glob("*.jpg")))
+#         total_files = len(all_images)
+#         files_per_round = math.ceil(total_files / num_rounds)
+
+#         for r in range(num_rounds):
+#             round_name = f"pest24_{r}"
+            
+#             # Chia subset cho Round
+#             r_start = r * files_per_round
+#             r_end = min(r_start + files_per_round, total_files)
+#             round_subset = all_images[r_start:r_end]
+            
+#             num_files_in_round = len(round_subset)
+#             if num_files_in_round == 0: continue
+                
+#             files_per_client = math.ceil(num_files_in_round / num_clients)
+
+#             for c in range(num_clients):
+#                 client_root = out_path / round_name / "partitions" / f"client_{c}"
+                
+#                 # Tạo folder đích: client_x / {train/valid/test} / {images/labels}
+#                 dest_img_dir = client_root / d_type / "images"
+#                 dest_lbl_dir = client_root / d_type / "labels"
+#                 dest_img_dir.mkdir(parents=True, exist_ok=True)
+#                 dest_lbl_dir.mkdir(parents=True, exist_ok=True)
+
+#                 # Copy file data.yaml vào root của client (chỉ copy 1 lần)
+#                 if yaml_path.exists() and not (client_root / "data.yaml").exists():
+#                     shutil.copy(yaml_path, client_root / "data.yaml")
+
+#                 # Chia file cho Client
+#                 c_start = c * files_per_client
+#                 c_end = min(c_start + files_per_client, num_files_in_round)
+#                 client_subset = round_subset[c_start:c_end]
+
+#                 for img_file in client_subset:
+#                     # Copy Image
+#                     shutil.copy(img_file, dest_img_dir / img_file.name)
+                    
+#                     # Tìm và copy Label tương ứng
+#                     txt_file = lbl_dir / f"{img_file.stem}.txt"
+#                     if txt_file.exists():
+#                         shutil.copy(txt_file, dest_lbl_dir / txt_file.name)
+
+#         print(f"Đã chia xong dữ liệu loại: {d_type}")
+from pathlib import Path
+import math
+import shutil
+
 def split_pest24_standard(input_root, yaml_file, output_root, num_rounds, num_clients):
-    # 1. Thiết lập đường dẫn gốc
     input_path = Path(input_root)
     yaml_path = Path(yaml_file)
     out_path = Path(output_root)
     
-    # Các loại dữ liệu cần xử lý
     data_types = ['train', 'valid', 'test']
 
-    for d_type in data_types:
-        img_dir = input_path / d_type / "images"
-        lbl_dir = input_path / d_type / "labels"
+    # Lặp qua từng round trước để đảm bảo cấu trúc thư mục nhất quán
+    for r in range(num_rounds):
+        round_name = f"pest24_{r}"
         
-        if not img_dir.exists():
-            print(f"Bỏ qua {d_type} vì không tìm thấy thư mục images.")
-            continue
-
-        # Lấy danh sách ảnh của loại này (train/valid/hoặc test)
-        all_images = sorted(list(img_dir.glob("*.jpg")))
-        total_files = len(all_images)
-        files_per_round = math.ceil(total_files / num_rounds)
-
-        for r in range(num_rounds):
-            round_name = f"pest24_{r}"
+        for d_type in data_types:
+            img_dir = input_path / d_type / "images"
+            lbl_dir = input_path / d_type / "labels"
             
-            # Chia subset cho Round
+            if not img_dir.exists():
+                continue
+
+            # Lấy danh sách ảnh
+            all_images = sorted(list(img_dir.glob("*.jpg")))
+            total_files = len(all_images)
+            
+            # Tính toán phân phối cho Round
+            # Sử dụng floor hoặc điều chỉnh để không bị hụt file ở round cuối
+            files_per_round = math.ceil(total_files / num_rounds)
             r_start = r * files_per_round
             r_end = min(r_start + files_per_round, total_files)
             round_subset = all_images[r_start:r_end]
             
             num_files_in_round = len(round_subset)
-            if num_files_in_round == 0: continue
+            if num_files_in_round == 0:
+                print(f"Round {r} không có dữ liệu cho {d_type}")
+                continue
                 
+            # Chia subset của Round cho từng Client
             files_per_client = math.ceil(num_files_in_round / num_clients)
 
             for c in range(num_clients):
                 client_root = out_path / round_name / "partitions" / f"client_{c}"
                 
-                # Tạo folder đích: client_x / {train/valid/test} / {images/labels}
+                # Tạo thư mục
                 dest_img_dir = client_root / d_type / "images"
                 dest_lbl_dir = client_root / d_type / "labels"
                 dest_img_dir.mkdir(parents=True, exist_ok=True)
                 dest_lbl_dir.mkdir(parents=True, exist_ok=True)
 
-                # Copy file data.yaml vào root của client (chỉ copy 1 lần)
+                # Copy data.yaml (chỉ cần ở root của client)
                 if yaml_path.exists() and not (client_root / "data.yaml").exists():
                     shutil.copy(yaml_path, client_root / "data.yaml")
 
-                # Chia file cho Client
+                # Chia file cho Client từ subset của Round
                 c_start = c * files_per_client
                 c_end = min(c_start + files_per_client, num_files_in_round)
                 client_subset = round_subset[c_start:c_end]
@@ -61,12 +130,12 @@ def split_pest24_standard(input_root, yaml_file, output_root, num_rounds, num_cl
                     # Copy Image
                     shutil.copy(img_file, dest_img_dir / img_file.name)
                     
-                    # Tìm và copy Label tương ứng
+                    # Copy Label tương ứng
                     txt_file = lbl_dir / f"{img_file.stem}.txt"
                     if txt_file.exists():
                         shutil.copy(txt_file, dest_lbl_dir / txt_file.name)
-
-        print(f"Đã chia xong dữ liệu loại: {d_type}")
+        
+        print(f"--- Hoàn thành chia dữ liệu cho {round_name} ---")
 def merge_clients_to_round_level(output_root, num_rounds):
     out_path = Path(output_root)
     data_types = ['train', 'valid', 'test']
@@ -233,10 +302,10 @@ def merge_limited_rounds(input_root, dest_path, start_n, end_n):
 
 # --- Cấu hình ---
 split_pest24_standard(
-    input_root='C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_1',
-    yaml_file='C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_1/data.yaml', 
+    input_root='C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24',
+    yaml_file='C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/data.yaml', 
     output_root='C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/expe3_1', 
-    num_rounds=2, 
+    num_rounds=3, 
     num_clients=2
 )
 # --- Cách sử dụng ---

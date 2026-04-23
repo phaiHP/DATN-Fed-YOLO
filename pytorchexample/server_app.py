@@ -54,11 +54,63 @@ from datetime import datetime
 # logging.info(f"Results Dict Keys: {results.results_dict.keys()}")
 # from flwr.server.strategy import FedAvg
 # ── init model with 24 class ──
+import datetime
+import sys
+import os
+import logging 
+class Logger(object):
+    def __init__(self):
+        self.terminal = sys.stdout
+        if not os.path.exists("logs"):
+            os.makedirs("logs")
+            
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"logs/training_{timestamp}.log"
+        
+        self.log = open(log_filename, "a", encoding='utf-8')
+        print(f"--- Đang ghi log vào file: {log_filename} ---")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+    def fileno(self):
+        """Trả về file descriptor của terminal gốc."""
+        return self.terminal.fileno()
+
+    def isatty(self):
+        """Kiểm tra xem có phải là terminal thực hay không."""
+        return self.terminal.isatty()
+
+    @property
+    def encoding(self):
+        """Trả về encoding của terminal gốc."""
+        return self.terminal.encoding
+
+# Kích hoạt Logger
+sys.stdout = Logger()
+sys.stderr = sys.stdout
+log_file_path = sys.stdout.log.name 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s : %(message)s',
+    handlers=[
+        logging.FileHandler(log_file_path, encoding='utf-8'), # Ghi vào cùng file log đó
+        logging.StreamHandler(sys.stdout.terminal)           # Vẫn đẩy ra màn hình console gốc
+    ]
+)
+
+# Chỉ định rõ cho Flower và Ray sử dụng cấu hình này
+logging.getLogger("flwr").setLevel(logging.INFO)
 MODEL_PATH = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_init.pt"
 # net = YOLO(MODEL_PATH)
 # MODEL_PATH = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24_init.pt"
 # CENTRAL_YAML = "/home/btldevteam/data/han-experiment/RAG/flwr/quickstart-pytorch/pest24/data.yaml"
-CENTRAL_YAML = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24/data.yaml"
+CENTRAL_YAML = "C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch/pest24_{round}/data.yaml"
 
 def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
     """Evaluate aggregated YOLO model on centralized val data."""
@@ -67,8 +119,7 @@ def global_evaluate(server_round: int, arrays: ArrayRecord) -> MetricRecord:
     net = YOLO(MODEL_PATH)
     state_dict = arrays.to_torch_state_dict()
     net.model.load_state_dict(state_dict, strict=True)  
-    central_yaml = CENTRAL_YAML
-    #.format(round=server_round)
+    central_yaml = CENTRAL_YAML.format(round=server_round)
     metrics = net.val(
         data=central_yaml,
         device= "cpu",

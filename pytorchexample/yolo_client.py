@@ -47,7 +47,7 @@ def train(msg: Message, context: Context):
 
     train_img_dir = (
         f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch"
-        f"/pest24/partitions/client_{partition_id}/train/images"
+        f"/pest24_{current_round}/partitions/client_{partition_id}/train/images"
     )
     num_examples = count_images(train_img_dir)
 
@@ -86,7 +86,7 @@ def evaluate(msg: Message, context: Context):
 
     val_img_dir = (
         f"C:/Users/PRECISION/Downloads/quickstart-pytorch/quickstart-pytorch"
-        f"/pest24/partitions/client_{partition_id}/valid/images"
+        f"/pest24_{current_round}/partitions/client_{partition_id}/valid/images"
     )
     num_examples = count_images(val_img_dir)
 
